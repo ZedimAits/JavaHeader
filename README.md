@@ -2,7 +2,7 @@
 
 A tool for visualizing your Java code structure via generated C header files and seamlessly adding methods/classes to your code.
 
-## Features
+## Features in Version 1.0
 - Generate a C Header file out of your java code (Test.java -> Test.h)
 - Automatically update your header file while you're coding
 - Add new methods and classes to your Java code through the generated header file
