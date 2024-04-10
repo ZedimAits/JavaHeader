@@ -24,6 +24,10 @@ A tool for visualizing your Java code structure via generated C header files and
 
 5. Update your Java code (save) and the header file will also be updated.
 
+### Testing (optional):
+*Test.java* is provided in the repo to test the script:
+Run with: `node index.js .\Test.java` and *Test.h* should be created.
+
 ### Add to header:
 Add your method/class signature to the header file with standard Java Syntax.<br>
 
