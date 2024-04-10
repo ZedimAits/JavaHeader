@@ -34,8 +34,8 @@ Add your method/class signature to the header file with standard Java Syntax.<br
 Example Header file:<br>
 ```C
 public class Main {
-	public static void main(String[] args);
-	void test(int a);
+    public static void main(String[] args);
+    void test(int a);
 }
 ```
 #### ❗*Only the addition of methods/classes is allowed. If you try to delete something, the script will revert it!* ❗
@@ -45,8 +45,8 @@ Save the header file and your new method/class signature will be added automatic
 Resulting Java file:<br>
 ```Java
 public class Main {
-	public static void main(String[] args){}
-	void test(int a){}
+    public static void main(String[] args){}
+    void test(int a){}
 }
 ```
 
@@ -56,21 +56,21 @@ Nested methods and classes are supported as well. Make sure to put to put *{ }* 
 Example nested header file:<br>
 ```C
 public class Main {
-	public static void main(String[] args){
-    class Test {
-      void test(int a);
+    public static void main(String[] args) {
+        class Test {
+            void test(int a);
+        }
     }
-  }
 }
 ```
 Resulting Java file:<br>
 ```Java
 public class Main {
-  public static void main(String[] args){
-    class Test {
-      void test(int a){}
+    public static void main(String[] args) {
+        class Test {
+            void test(int a){}
+        }
     }
-  }
 }
 ```
 
