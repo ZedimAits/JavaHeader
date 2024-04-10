@@ -51,7 +51,7 @@ public class Main {
 ```
 
 ### Nesting
-Nested methods and classes are supported as well. Make sure to put to put *{ }* around.
+Nested methods and classes are supported as well. Make sure to put *{ }* around.
 
 Example nested header file:<br>
 ```C
