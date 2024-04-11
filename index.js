@@ -147,7 +147,13 @@ function rekObj(string) {
             if (curlCount === 0) {
                 str = str.trim();
                 const between = string.slice(curlPos + 1, i);
-                if (!str.includes(" if") && str.substring(0, 2) != "if") {
+
+                console.log(str);
+                if (
+                    !str.includes(" if") &&
+                    str.substring(0, 2) != "if" &&
+                    str.substring(0, 4) != "else"
+                ) {
                     const push = { name: str, attributes: rekObj(between) };
                     o.push(push);
                 }
@@ -189,6 +195,7 @@ function getHeaderString(fileContent) {
     const signatures = text
         .replace(/\/\*[^\*\/]*\*\//g, "")
         .replace(/[^{}]*(?=\})/g, "")
+        .replace(/[^}{;]*;/g, "")
         .replace("\n", "")
         .trim()
         .replace(/\s{2,}/g, " ");
