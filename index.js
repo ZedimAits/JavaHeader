@@ -2,8 +2,8 @@
 //-add methods in header
 
 const fs = require("fs");
-
-const PATHTOFILE = process.argv[2];
+const { resolve } = require("path");
+const PATHTOFILE = resolve(process.argv[2]);
 let STATUS = [];
 
 //MAIN
@@ -148,7 +148,6 @@ function rekObj(string) {
                 str = str.trim();
                 const between = string.slice(curlPos + 1, i);
 
-                console.log(str);
                 if (
                     !str.includes(" if") &&
                     str.substring(0, 2) != "if" &&
