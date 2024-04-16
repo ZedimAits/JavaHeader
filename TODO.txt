@@ -1,5 +1,0 @@
-TODO:
-- testing with bigger files
-- clean up code
-- add support for renaming
-- add support for many files
