@@ -2,7 +2,7 @@
 //-add methods in header
 
 const fs = require("fs");
-const { resolve } = require("path");
+const { resolve, basename, join, dirname } = require("path");
 const PATHTOFILE = resolve(process.argv[2]);
 let STATUS = [];
 
