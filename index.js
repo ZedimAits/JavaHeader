@@ -2,7 +2,7 @@
 //-add methods in header
 
 const fs = require("fs");
-const { resolve } = require("path");
+const { resolve, basename, join, dirname } = require("path");
 const PATHTOFILE = resolve(process.argv[2]);
 let STATUS = [];
 
@@ -218,11 +218,6 @@ function writeToHeader(content) {
 }
 
 function getHeaderPath() {
-    let fileName = PATHTOFILE.split(".");
-    fileName = fileName[fileName.length - 2].split("\\");
-    fileName = fileName[fileName.length - 1];
-    let path = PATHTOFILE.split(".")[0].split("\\");
-    path = path.slice(0, path.length - 1).join("\\");
-    if (path === "") path = ".";
-    return path + "\\" + fileName + ".h";
+    const name = basename(PATHTOFILE, ".java");
+    return join(dirname(PATHTOFILE), name + ".h");
 }
