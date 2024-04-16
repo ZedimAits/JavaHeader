@@ -148,7 +148,6 @@ function rekObj(string) {
                 str = str.trim();
                 const between = string.slice(curlPos + 1, i);
 
-                console.log(str);
                 if (
                     !str.includes(" if") &&
                     str.substring(0, 2) != "if" &&
@@ -216,7 +215,7 @@ function sPrint(p) {
 
 function writeToHeader(content) {
     console.log(getHeaderPath());
-    //fs.writeFileSync(getHeaderPath(), content);
+    fs.writeFileSync(getHeaderPath(), content);
 }
 
 function getHeaderPath() {
