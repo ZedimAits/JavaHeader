@@ -151,7 +151,9 @@ function rekObj(string) {
                 if (
                     !str.includes(" if") &&
                     str.substring(0, 2) != "if" &&
-                    str.substring(0, 4) != "else"
+                    str.substring(0, 4) != "else" &&
+                    str.substring(0, 6) != "switch" &&
+                    str.substring(0, 5) != "while"
                 ) {
                     const push = { name: str, attributes: rekObj(between) };
                     o.push(push);
