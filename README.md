@@ -3,7 +3,7 @@
 JavaHeader is a tool designed to help you visualize your Java code structure by generating C header files. It simplifies the process of navigating complex Java codebases by focusing on methods, classes, and structure.
 
 ## What's New in Version 2.0
-- **Enhanced Java Code Parser**: Now capable of parsing and displaying almost any Java code with improved accuracy.
+- **Enhanced Java Code Parser**: Now capable of parsing and displaying almost any Java code with improved accuracy, thanks to [ANTLR4](https://github.com/antlr/antlr4).
 - **Robust Structure Display**: Better handling of nested structures, ensuring a clear and precise header file output.
 
 ## Features
