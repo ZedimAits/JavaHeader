@@ -1,11 +1,15 @@
 {
     "name": "javaheader",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "description": "create a header file like in c, to get a structural overview for your java files",
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "zedim",
-    "license": "ISC"
+    "license": "ISC",
+    "type": "module",
+    "dependencies": {
+        "antlr4": "^4.13.2"
+    }
 }

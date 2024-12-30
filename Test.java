@@ -1,26 +1,51 @@
-public class Main {
-    public static void main(String[] args) {
-        int i = 1;
-        String test = "Hello";
-        System.out.println("Hello world!");
+// Class with Constructor and Methods
+class Test {
+    private int value;
 
+    public Test(int value) {
+        this.value = value;
     }
-    static int add(int a, int b) {
-        static void print(int a, int b) {
-            System.out.println(a+b);
+
+    public int getValue() {
+        return value;
+    }
+
+    public void setValue(int value) {
+        this.value = value;
+    }
+}
+
+// Nested Classes
+class Nested {
+    private static final String MESSAGE = "Outer class message";
+
+    public static class NestedStaticClass {
+        public void printMessage() {
+            System.out.println(MESSAGE);
         }
-        return a+b;
-    }
-    void test(int a, int b){
-        int asdd(){}
     }
 
-	private static int x(){}
-    class Test {
-        public Test(){}
-        public drucke() {
-            private func(){}
+    public class InnerClass {
+        public void display() {
+            System.out.println("Inner class method.");
         }
     }
 }
 
+enum Status {
+    ACTIVE, INACTIVE
+}
+
+@interface StatusInfo {
+    Status value();
+}
+
+@StatusInfo(Status.ACTIVE)
+class AnnotatedClass {
+    Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            System.out.println("Anonymous class example.");
+        }
+    };
+}

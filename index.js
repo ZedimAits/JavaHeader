@@ -1,169 +1,143 @@
-//TODO
-//-add methods in header
+import antlr4 from "antlr4";
+import JavaLexer from "./parser/JavaLexer.js";
+import JavaParser from "./parser/JavaParser.js";
+import fs from "fs";
+import path from "path";
 
-const fs = require("fs");
-const { resolve, basename, join, dirname } = require("path");
-const PATHTOFILE = resolve(process.argv[2]);
-let STATUS = [];
+const PATHTOFILE = path.resolve(process.argv[2]);
+const HEADERFILE = path.join(path.dirname(PATHTOFILE), path.basename(PATHTOFILE, ".java") + ".h");
 
-//MAIN
 updateHeader();
 console.log("Watching for file changes...");
-
-fs.watchFile(PATHTOFILE, () => {
-    console.log("File has changed");
-    updateHeader();
-});
-fs.watchFile(getHeaderPath(), () => {
-    console.log("Header has changed");
-    updateFile();
-});
-
-function updateFile() {
-    //compare status
-    //if invalid overwrite
-    //if same do nothing
-    //if valid continue
-    let newObj = getHeaderContent();
-
-    let equal = checkIfValid(newObj, STATUS);
-    if (!equal) {
+fs.watch(PATHTOFILE, (eventType) => {
+    if (eventType === "change") {
         updateHeader();
-        console.log("NOT VALID");
-        return;
     }
-    //type: Array[Array[{String,Obj}]]
-    let diff = [];
-    getDifference(newObj, STATUS, diff, "", 0);
+});
 
-    //TODO:
-    //-for each find appropiate place in code and write new
-    for (let i = 0; i < diff.length; i++) {
-        for (let j = 0; j < diff[i].length; j++) {
-            const e = diff[i][j];
-            const str = rekString(e.obj, e.depth, "{}");
-            writeChanges(e.parent, str);
-        }
+function updateHeader(){
+    const input = fs.readFileSync(PATHTOFILE, "utf-8");
+    const chars = new antlr4.InputStream(input);
+    const lexer = new JavaLexer(chars);
+    const tokens = new antlr4.CommonTokenStream(lexer);
+    const parser = new JavaParser(tokens);
+
+    const tree = parser.compilationUnit();
+
+    const headers = [""];
+    extractHeaders(tree, parser.ruleNames, headers, 0);
+    if (headers[headers.length - 1] === "") {
+        headers.pop();
     }
-    updateHeader();
+
+    const headerContent = headers.join("\n");
+    fs.writeFileSync(HEADERFILE, headerContent);
+    console.log(`Header file generated: ${HEADERFILE}`);
 }
 
-function writeChanges(parent, str) {
-    //findLine
-    const content = readFileContent(PATHTOFILE);
-    let index = 0;
-    if (parent === "") index = content.length;
-    else {
-        let regex = new RegExp(parent, "g");
-        index = regex.exec(content).index;
+function extractHeaders(node, ruleNames, headers, depth) {
+    
+    const ruleName = ruleNames[node.ruleIndex];
+    if (!ruleName) return;
 
-        let curlCount = 0;
-        let curlPos = -1;
-
-        for (i = index; i < content.length; i++) {
-            if (content[i] == "{") {
-                curlCount++;
-                curlPos = i;
+    if (ruleName === "classOrInterfaceModifier") {
+        const belongsTo = determineModifierContext(node, ruleNames);
+        if (belongsTo === "class" || belongsTo === "method") {
+            if(ruleNames[node.children[0].ruleIndex] === "annotation") {
+                headers[headers.length - 1] += node.getText();
+                headers.push(strMult("\t", depth));
             }
-            if (content[i] == "}") {
-                curlCount--;
+            else {
+                headers[headers.length - 1] += node.getText() + " ";
             }
-            if (curlCount == 0 && curlPos != -1) {
-                index = i;
-                break;
-            }
+        } else {
+            return;
         }
-    }
-    const splitA = content.substring(0, index);
-    const splitB = content.substring(index);
-    fs.writeFileSync(PATHTOFILE, splitA + "\n" + str + splitB);
-}
-
-function getHeaderContent() {
-    const string = readFileContent(getHeaderPath())
-        .replaceAll(";", "{}")
-        .replaceAll("\n", "")
-        .replace(/\s{2,}/g, " ");
-    return rekObj(string);
-}
-
-function getDifference(nobj, stat, returnArr, parent, depth) {
-    if (nobj.length === 0) return;
-    if (nobj.length > stat.length) {
-        let obj = [];
-        for (let j = stat.length; j < nobj.length; j++) {
-            obj.push({ parent: parent, depth: depth, obj: [nobj[j]] });
-        }
-        returnArr.push(obj);
-    }
-    for (let i = 0; i < stat.length; i++) {
-        getDifference(
-            nobj[i].attributes,
-            stat[i].attributes,
-            returnArr,
-            nobj[i].name,
-            depth + 1
-        );
-    }
-}
-
-function checkIfValid(nobj, stat) {
-    if (stat.length === 0) return true;
-    if (nobj.length < stat.length) return false;
-    let o = true;
-    for (let i = 0; i < stat.length; i++) {
-        if (nobj[i].name != stat[i].name) return false;
-        o = o && checkIfValid(nobj[i].attributes, stat[i].attributes);
-    }
-    return o;
-}
-
-function updateHeader() {
-    const content = readFileContent(PATHTOFILE);
-    const str = getHeaderString(content);
-    writeToHeader(str);
-}
-function readFileContent(path) {
-    return fs.readFileSync(path).toString();
-}
-
-function rekObj(string) {
-    if (string === "") return [];
-    let o = [];
-    let str = "";
-    let curlCount = 0;
-    let curlPos = 0;
-    for (let i = 0; i < string.length; i++) {
-        const x = string[i];
-        if (x === "{") {
-            if (curlCount === 0) curlPos = i;
-            curlCount++;
+    } else if (
+        ruleName === "classDeclaration" || 
+        ruleName === "interfaceDeclaration"
+    ) {
+        for(let i = 0; i < node.children.length - 1; i++){
+            headers[headers.length -1] += node.children[i].getText() + " ";
         }
 
-        if (curlCount === 0) str += x;
+        headers[headers.length -1] += "{";
+        depth += 1;
+        headers.push(strMult("\t", depth));
 
-        if (x === "}") {
-            curlCount--;
-            if (curlCount === 0) {
-                str = str.trim();
-                const between = string.slice(curlPos + 1, i);
+    } else if (
+        ruleName === "methodDeclaration" || 
+        ruleName === "constructorDeclaration" || 
+        ruleName === "interfaceCommonBodyDeclaration"
+    ) {
+        if(isFromAnonymousClass(node, ruleNames)) return;
 
-                if (
-                    !str.includes(" if") &&
-                    str.substring(0, 2) != "if" &&
-                    str.substring(0, 4) != "else" &&
-                    str.substring(0, 6) != "switch" &&
-                    str.substring(0, 5) != "while"
-                ) {
-                    const push = { name: str, attributes: rekObj(between) };
-                    o.push(push);
-                }
-                str = "";
-            }
+        for(let i = 0; i < node.children.length - 2; i++){
+            headers[headers.length -1] += node.children[i].getText() + " ";
         }
+        headers[headers.length -1] += "(" + methodVar(node.children[node.children.length-2].children[1]) + ");";
+        
+        headers.push(strMult("\t", depth));
+
+    } else if (ruleName === "annotationTypeDeclaration"){ 
+        headers[headers.length -1] += node.children[0].getText() + node.children[1].getText() + " ";
+        for(let i = 2; i < node.children.length - 1; i++){
+            headers[headers.length -1] += node.children[i].getText() + " ";
+        }
+        headers[headers.length -1] += "{";
+        depth += 1;
+        headers.push(strMult("\t", depth));
+
+    } else if (ruleName === "annotationTypeElementRest"){
+        headers[headers.length -1] += annotationTypeElementRek(node);
+        headers.push(strMult("\t", depth));
+
+    } else if (ruleName === "enumDeclaration"){
+        for(let i = 0; i < node.children.length - 3; i++){
+            headers[headers.length -1] += node.children[i].getText() + " ";
+        }
+
+        headers[headers.length -1] += "{";
+        depth += 1;
+        headers.push(strMult("\t", depth));
+    } else if (ruleName === "enumConstants"){
+        let enumconst = [];
+        for(let i = 0; i < node.children.length; i++){
+            if(i % 2 != 0) continue;
+            enumconst.push(node.children[i].getText());
+        }
+        headers[headers.length-1] += enumconst.join(", ");
+        headers.push(strMult("\t", depth));
     }
 
-    return o;
+    for (const child of node.children || []) {
+        extractHeaders(child, ruleNames, headers, depth);
+    }
+
+    if (ruleName === "classDeclaration" || ruleName === "interfaceDeclaration" || ruleName === "annotationTypeDeclaration" || ruleName === "enumDeclaration") {
+        headers[headers.length-1] = strMult("\t", depth-1) + "}";
+        headers.push(strMult("\t", depth-1));
+    }
+}
+
+function methodVar(node){
+    if(node.children === undefined) return "";
+    var o = [];
+
+    
+    for(let i = 0; i < node.children.length; i++){
+        if(i % 2 != 0) continue;
+        const child = node.children[i];
+
+        let opush = [];
+        for(let j = 0; j < child.children.length; j++){
+            opush.push(child.children[j].getText());
+        }
+        o.push(opush.join(" "));
+    }
+
+    return o.join(", ");
+
 }
 
 function strMult(str, times) {
@@ -171,56 +145,68 @@ function strMult(str, times) {
     for (let j = 0; j < times; j++) o += str;
     return o;
 }
-function rekString(obj, depth, ending) {
-    if (obj.length === 0) return "";
-    let o = "";
-    for (let i = 0; i < obj.length; i++) {
-        let str = "";
-        const tab = strMult("\t", depth);
-        str += tab;
-        str += obj[i].name;
-        if (obj[i].attributes.length != 0)
-            str +=
-                " {\n" +
-                rekString(obj[i].attributes, depth + 1, ending) +
-                tab +
-                "}\n";
-        else str += ending + "\n";
-        o += str;
+
+function determineModifierContext(node, ruleNames) {
+    let context = node.parentCtx;
+
+    if(ruleNames[node.parentCtx.parentCtx.ruleIndex] === "compilationUnit") return "class";
+    if(isFromAnonymousClass(node, ruleNames)) return null;
+
+    while (context) {
+        const rule = ruleNames[context.ruleIndex];
+        if (rule === "classBodyDeclaration") {
+            const memberDeclaration = context.children.find(
+                (child) => ruleNames[child.ruleIndex] === "memberDeclaration"
+            );
+
+            if (memberDeclaration) {
+                const memberRule = ruleNames[memberDeclaration.children[0].ruleIndex];
+                if (memberRule === "methodDeclaration") {
+                    return "method";
+                } else if (memberRule === "classDeclaration" || memberRule === "constructorDeclaration" || memberRule === "interfaceDeclaration" || memberRule === "enumDeclaration") {
+                    return "class";
+                } else if (memberRule === "fieldDeclaration") {
+                    return "field";
+                }
+            }
+        }
+
+        context = context.parentCtx;
     }
+    return null;
+}
+
+function isFromAnonymousClass(node, ruleNames){
+    const findRule = "classBody";
+    let context = node.parentCtx;
+
+    while (context) {
+        const rule = ruleNames[context.ruleIndex];
+        if (rule === findRule) {
+            break;
+        }
+        context = context.parentCtx;
+    }
+
+    if(context){
+        return ruleNames[context.parentCtx.ruleIndex] === "classCreatorRest";
+    }
+    else {
+        return true;
+    }
+
+}
+
+function annotationTypeElementRek(node){
+    if(node.children === undefined) {
+        if(node.getText() === "(" || node.getText() === "[") return node.getText();
+        return node.getText() + " ";
+    }
+
+    let o = "";
+    for(const child of node.children){
+        o += annotationTypeElementRek(child);
+    }
+    if(o.substring(o.length-2, o.length) === "; ") o = o.replace(" ; ", ";");
     return o;
-}
-
-function getHeaderString(fileContent) {
-    const text = fileContent;
-    const signatures = text
-        .replace(/\/\*[^\*\/]*\*\//g, "")
-        .replace(/[^{}]*(?=\})/g, "")
-        .replace(/[^}{;]*;/g, "")
-        .replace("\n", "")
-        .trim()
-        .replace(/\s{2,}/g, " ");
-
-    const obj = rekObj(signatures);
-    STATUS = obj;
-
-    let finalString = rekString(obj, 0, ";");
-    return finalString;
-}
-function sPrint(p) {
-    const util = require("util");
-
-    console.log(
-        util.inspect(p, { showHidden: false, depth: null, colors: true })
-    );
-}
-
-function writeToHeader(content) {
-    console.log(getHeaderPath());
-    fs.writeFileSync(getHeaderPath(), content);
-}
-
-function getHeaderPath() {
-    const name = basename(PATHTOFILE, ".java");
-    return join(dirname(PATHTOFILE), name + ".h");
 }

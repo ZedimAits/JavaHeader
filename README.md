@@ -1,78 +1,129 @@
 # JavaHeader
 
-A tool for visualizing your Java code structure via generated C header files and seamlessly adding methods/classes to your code.
+JavaHeader is a tool designed to help you visualize your Java code structure by generating C header files. It simplifies the process of navigating complex Java codebases by focusing on methods, classes, and structure.
 
-## Features in version 1.0
-- Generate a C Header file out of your java code (Test.java -> Test.h)
-- Automatically update your header file while you're coding
-- Add new methods and classes to your Java code through the generated header file
+## What's New in Version 2.0
+- **Enhanced Java Code Parser**: Now capable of parsing and displaying almost any Java code with improved accuracy.
+- **Robust Structure Display**: Better handling of nested structures, ensuring a clear and precise header file output.
+
+## Features
+- Generate a C Header file from your Java code (`Test.java` -> `Test.h`).
+- Automatically update the header file as you code.
+- Support for nested methods and classes.
 
 ## Usage
 ### Run:
 
-1. You need to have [NodeJS](https://nodejs.org) installed.
-  
-2. Clone the GitHub Repo.
-  
-3. Open the "JavaHeader" folder and run "index.js" in your terminal with specified path to your Java code:<br>
-    ```console
+1. Clone the GitHub repository.
+2. Navigate to the "JavaHeader" folder.
+3. Install the necessary dependencies using:
+    ```bash
+    npm install
+    ```
+3. Run the script using `node` with the path to your Java file:
+    ```bash
     node index.js <PathToYourCode>
     ```
-    *(absolute and relative paths are supported)*<br>
-  
-4. The Java header file will be created in the specified path.
 
-5. Update your Java code (save) and the header file will also be updated.
+4. The corresponding header file will be created in the specified directory.
+5. Edit and save your Java code; the header file will update automatically.
 
-### Testing (optional):
-*Test.java* is provided in the repo to test the script:
-Run with: `node index.js .\Test.java` and *Test.h* should be created.
 
-### Add to header:
-Add your method/class signature to the header file with standard Java Syntax.<br>
-
-Example Header file:<br>
-```C
-public class Main {
-    public static void main(String[] args);
-    void test(int a);
-}
+### Example Run
+For example, with `Test.java` provided in the repository:
+```bash
+node index.js ./Test.java
 ```
-#### ❗*Only the addition of methods/classes is allowed. If you try to delete something, the script will revert it!* ❗
+This will generate a Test.h file in the same directory.
 
-Save the header file and your new method/class signature will be added automatically to your code.
+## Example
 
-Resulting Java file:<br>
-```Java
-public class Main {
-    public static void main(String[] args){}
-    void test(int a){}
+<details>
+  <summary markdown="span"><b>Test.java</b></summary>
+
+  ```java
+  // Class with Constructor and Methods
+class Test {
+    private int value;
+
+    public Test(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public void setValue(int value) {
+        this.value = value;
+    }
 }
-```
 
-### Nesting
-Nested methods and classes are supported as well. Make sure to put *{ }* around.
+// Nested Classes
+class Nested {
+    private static final String MESSAGE = "Outer class message";
 
-Example nested header file:<br>
-```C
-public class Main {
-    public static void main(String[] args) {
-        class Test {
-            void test(int a);
+    public static class NestedStaticClass {
+        public void printMessage() {
+            System.out.println(MESSAGE);
+        }
+    }
+
+    public class InnerClass {
+        public void display() {
+            System.out.println("Inner class method.");
         }
     }
 }
-```
-Resulting Java file:<br>
-```Java
-public class Main {
-    public static void main(String[] args) {
-        class Test {
-            void test(int a){}
+
+enum Status {
+    ACTIVE, INACTIVE
+}
+
+@interface StatusInfo {
+    Status value();
+}
+
+@StatusInfo(Status.ACTIVE)
+class AnnotatedClass {
+    Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            System.out.println("Anonymous class example.");
         }
-    }
+    };
 }
 ```
+</details>
+
+<details>
+  <summary markdown="span"><b>Test.h</b></summary>
+
+  ```java
+  class Test {
+	public Test (int value);
+	public int getValue ();
+	public void setValue (int value);
+}
+class Nested {
+	public static class NestedStaticClass {
+		public void printMessage ();
+	}
+	public class InnerClass {
+		public void display ();
+	}
+}
+enum Status {
+	ACTIVE, INACTIVE
+}
+@interface StatusInfo {
+	Status value ();
+}
+@StatusInfo(Status.ACTIVE)
+class AnnotatedClass {
+}
+```
+</details>
 
 ## Contributing
 Contributions to JavaHeader are welcomed! Feel free to submit bug reports, feature requests, or pull requests to help improve the tool.
